@@ -1,8 +1,12 @@
-# `deferred-cell`
+# deferred-cell
 
-A single-assignment, weak reference wrapper for static cyclic node graphs with late initialization.
+[![Crates.io](https://img.shields.io/crates/v/deferred-cell.svg)](https://crates.io/crates/deferred-cell)
+[![Docs.rs](https://docs.rs/deferred-cell/badge.svg)](https://docs.rs/deferred-cell)
+[![CI](https://github.com/BernardIgiri/deferred-cell/actions/workflows/release.yml/badge.svg)](https://github.com/BernardIgiri/deferred-cell/actions)
 
-This crate provides a lightweight alternative to `RefCell<Option<Weak<T>>>` when building reference graphs such as cyclic trees, linked lists, and bidirectional or circular structures. It enables you to cleanly and safely establish weak links between nodes **after** they are constructed.
+A single-assignment, weak reference wrapper for cyclic node graphs with write-once, late initialization.
+
+This crate provides a lightweight alternative to `RefCell<Option<Weak<T>>>` when building write-once reference graphs, such as cyclic trees, linked lists, and bidirectional or circular structures. It enables you to cleanly and safely establish weak links between nodes **after** they are constructed.
 
 ---
 

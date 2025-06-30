@@ -1,10 +1,10 @@
-//! `deferred-cell`: A single-assignment, weak reference wrapper for static cyclic node graphs with late initialization.
+//! `deferred-cell`: A single-assignment, weak reference wrapper for write-once cyclic node graphs with late initialization.
 //!
 //! This crate provides a lightweight alternative to runtime mutation or interior mutability
-//! when building reference graphs such as cyclic trees or bidirectional structures.
+//! when building write-once reference graphs such as cyclic trees or bidirectional structures.
 //!
 //! Instead of littering your code with `RefCell<Option<Weak<T>>>`, you can use `Deferred<T>` to express
-//! single-assignment of weak links clearly and safely.
+//! write-once assignment of weak links clearly and safely.
 //!
 //! ## Example
 //!
@@ -55,7 +55,7 @@ pub enum DeferredError {
     NotInitializedError(),
 }
 
-/// A write once, weak reference wrapper, for late initialization.
+/// A write-once, weak reference wrapper, for late initialization.
 #[derive(Debug, Clone)]
 pub struct Deferred<T>(OnceCell<Weak<T>>);
 
