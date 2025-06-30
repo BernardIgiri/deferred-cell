@@ -3,13 +3,17 @@
 //! This crate provides a lightweight alternative to runtime mutation or interior mutability
 //! when building write-once reference graphs such as cyclic trees or bidirectional structures.
 //!
-//! Instead of littering your code with `RefCell<Option<Weak<T>>>`, you can use `Deferred<T>` to express
-//! write-once assignment of weak links clearly and safely.
+//! `Deferred<T>` enables building self-referential or cyclic structures without interior mutability.
+//! It starts uninitialized, and can be set *once* with a weak reference to a value of type `T`.
+//!
+//! To assign a value, use [`SetOnce::from`] followed by [`SetOnce::try_set`].
+//!
+//! After initialization, the reference can be accessed using [`Deferred::get`] or [`Deferred::try_get`].
 //!
 //! ## Example
 //!
 //! ```rust
-//! use deferred_cell::{Deferred, DeferredMut, DeferredError};
+//! use deferred_cell::{Deferred, SetOnce, DeferredError};
 //! use std::rc::Rc;
 //!
 //! struct Node {
@@ -27,9 +31,10 @@
 //!         neighbor: Deferred::default(),
 //!     });
 //!
-//!     DeferredMut::from(&node.neighbor).try_set(&neighbor)?;
+//!     SetOnce::from(&node.neighbor).try_set(&neighbor)?;
 //!     let linked = node.neighbor.try_get()?;
 //!     assert_eq!(linked.value, "B");
+//!     // Calling `get()` will panic if node.neighbor is not initialized!
 //!     assert_eq!(node.neighbor.get().value, "B");
 //!
 //!     Ok(())
@@ -55,7 +60,9 @@ pub enum DeferredError {
     NotInitializedError(),
 }
 
-/// A write-once, weak reference wrapper, for late initialization.
+/// A write-once, weak reference wrapper for late initialization.
+///
+/// Use [`SetOnce`](crate::SetOnce) to assign a value exactly once,
 #[derive(Debug, Clone)]
 pub struct Deferred<T>(OnceCell<Weak<T>>);
 
@@ -76,7 +83,7 @@ impl<T> Deferred<T> {
     #[must_use]
     pub fn get(&self) -> Rc<T> {
         #[allow(clippy::expect_used)]
-        self.try_get().expect("Deferred value not yet set!")
+        self.try_get().expect("Deferred value is not yet set!")
     }
     #[inline]
     pub fn is_ready(&self) -> bool {
@@ -84,11 +91,26 @@ impl<T> Deferred<T> {
     }
 }
 
-/// Exposes write-once interface on Deferred<T>
+/// A write-once assignment interface for [`Deferred<T>`].
+///
+/// `SetOnce<'a, T>` is a lightweight wrapper used to initialize a [`Deferred<T>`]
+/// exactly one time, enforcing single-assignment semantics.
+///
+/// You typically create it via [`SetOnce::from`] and assign a value using [`SetOnce::try_set`].
+///
+/// # Example
+/// ```
+/// use deferred_cell::{Deferred, SetOnce};
+/// use std::rc::Rc;
+///
+/// let deferred = Deferred::default();
+/// let value = Rc::new(42);
+/// SetOnce::from(&deferred).try_set(&value).unwrap();
+/// ```
 #[derive(Debug, Clone)]
-pub struct DeferredMut<'a, T>(&'a Deferred<T>);
+pub struct SetOnce<'a, T>(&'a Deferred<T>);
 
-impl<'a, T> DeferredMut<'a, T> {
+impl<'a, T> SetOnce<'a, T> {
     pub const fn from(cell: &'a Deferred<T>) -> Self {
         Self(cell)
     }
@@ -113,7 +135,6 @@ pub trait DeferredIteratorExt<T>: Iterator<Item = Deferred<T>> + Sized {
     fn get_deferred(self) -> impl Iterator<Item = Rc<T>> {
         self.map(|d| d.get())
     }
-
     /// Returns an iterator of `Result<Rc<T>, DeferredError>` from an iterator of `Deferred<T>`.
     fn try_get_deferred(self) -> impl Iterator<Item = Result<Rc<T>, DeferredError>> {
         self.map(|d| d.try_get())
@@ -158,58 +179,26 @@ mod test {
         let south = Node::new("South", 3);
         let west = Node::new("West", 3);
 
-        DeferredMut::from(&center.neighbors[0])
-            .try_set(&north)
-            .unwrap();
-        DeferredMut::from(&center.neighbors[1])
-            .try_set(&west)
-            .unwrap();
-        DeferredMut::from(&center.neighbors[2])
-            .try_set(&south)
-            .unwrap();
-        DeferredMut::from(&center.neighbors[3])
-            .try_set(&east)
-            .unwrap();
+        SetOnce::from(&center.neighbors[0]).try_set(&north).unwrap();
+        SetOnce::from(&center.neighbors[1]).try_set(&west).unwrap();
+        SetOnce::from(&center.neighbors[2]).try_set(&south).unwrap();
+        SetOnce::from(&center.neighbors[3]).try_set(&east).unwrap();
 
-        DeferredMut::from(&north.neighbors[0])
-            .try_set(&west)
-            .unwrap();
-        DeferredMut::from(&north.neighbors[1])
-            .try_set(&center)
-            .unwrap();
-        DeferredMut::from(&north.neighbors[2])
-            .try_set(&east)
-            .unwrap();
+        SetOnce::from(&north.neighbors[0]).try_set(&west).unwrap();
+        SetOnce::from(&north.neighbors[1]).try_set(&center).unwrap();
+        SetOnce::from(&north.neighbors[2]).try_set(&east).unwrap();
 
-        DeferredMut::from(&west.neighbors[0])
-            .try_set(&north)
-            .unwrap();
-        DeferredMut::from(&west.neighbors[1])
-            .try_set(&south)
-            .unwrap();
-        DeferredMut::from(&west.neighbors[2])
-            .try_set(&center)
-            .unwrap();
+        SetOnce::from(&west.neighbors[0]).try_set(&north).unwrap();
+        SetOnce::from(&west.neighbors[1]).try_set(&south).unwrap();
+        SetOnce::from(&west.neighbors[2]).try_set(&center).unwrap();
 
-        DeferredMut::from(&south.neighbors[0])
-            .try_set(&center)
-            .unwrap();
-        DeferredMut::from(&south.neighbors[1])
-            .try_set(&west)
-            .unwrap();
-        DeferredMut::from(&south.neighbors[2])
-            .try_set(&east)
-            .unwrap();
+        SetOnce::from(&south.neighbors[0]).try_set(&center).unwrap();
+        SetOnce::from(&south.neighbors[1]).try_set(&west).unwrap();
+        SetOnce::from(&south.neighbors[2]).try_set(&east).unwrap();
 
-        DeferredMut::from(&east.neighbors[0])
-            .try_set(&north)
-            .unwrap();
-        DeferredMut::from(&east.neighbors[1])
-            .try_set(&center)
-            .unwrap();
-        DeferredMut::from(&east.neighbors[2])
-            .try_set(&south)
-            .unwrap();
+        SetOnce::from(&east.neighbors[0]).try_set(&north).unwrap();
+        SetOnce::from(&east.neighbors[1]).try_set(&center).unwrap();
+        SetOnce::from(&east.neighbors[2]).try_set(&south).unwrap();
 
         vec![center, north, east, south, west]
     }
@@ -233,14 +222,13 @@ mod test {
         assert_eq!(east.value, "East");
         assert_eq!(center_again.value, "Center");
     }
-
     #[test]
     fn duplicate_initialization_fails() {
         let graph = make_cyclic_graph();
         let center = graph.first().unwrap();
 
         let neighbor_slot = &center.neighbors[0];
-        let mutator = DeferredMut::from(neighbor_slot);
+        let mutator = SetOnce::from(neighbor_slot);
         let duplicate_set = mutator.try_set(center);
 
         assert!(
@@ -248,7 +236,6 @@ mod test {
             "Expected DuplicateInitialization error"
         );
     }
-
     #[test]
     fn uninitialized_access_fails() {
         let uninitialized: Deferred<Node> = Deferred::default();
@@ -259,7 +246,6 @@ mod test {
             "Expected NotInitializedError"
         );
     }
-
     #[test]
     fn iterator_extension_works() {
         let graph = make_cyclic_graph();
@@ -275,7 +261,6 @@ mod test {
 
         assert_eq!(values, vec!["North", "West", "South", "East"]);
     }
-
     #[test]
     fn deferred_state_checking() {
         let graph = make_cyclic_graph();
@@ -283,7 +268,7 @@ mod test {
         let neighbor = &center.neighbors[0];
 
         assert!(neighbor.is_ready());
-        let m = DeferredMut::from(neighbor);
+        let m = SetOnce::from(neighbor);
         assert!(!m.can_set());
     }
 }

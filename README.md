@@ -15,7 +15,7 @@ This crate provides a lightweight alternative to `RefCell<Option<Weak<T>>>` when
 - ✅ Write-once semantics using `OnceCell<Weak<T>>`
 - ✅ Safe and ergonomic API for deferred initialization
 - ✅ Strong test coverage
-- ✅ Optional helper type for setting values: `DeferredMut`
+- ✅ Optional helper type for setting values: `SetOnce`
 - ✅ Iterator extension trait for working with collections
 
 ---
@@ -46,7 +46,7 @@ However, this allows re-assignment and mutation, which is overkill in cases wher
 ## 🚀 Example
 
 ```rust
-use deferred_cell::{Deferred, DeferredMut, DeferredError};
+use deferred_cell::{Deferred, SetOnce, DeferredError};
 use std::rc::Rc;
 
 struct Node {
@@ -66,7 +66,7 @@ fn main() -> Result<(), DeferredError> {
     });
 
     // Assign weak reference after both nodes are constructed
-    DeferredMut::from(&node.neighbor).try_set(&neighbor)?;
+    SetOnce::from(&node.neighbor).try_set(&neighbor)?;
 
     // Access the neighbor
     let linked = node.neighbor.try_get()?;
@@ -85,7 +85,7 @@ let d: Deferred<T> = Deferred::default();
 let rc: Rc<T> = ...;
 
 // One-time set
-DeferredMut::from(&d).try_set(&rc)?;
+SetOnce::from(&d).try_set(&rc)?;
 
 // Later access
 let strong: Rc<T> = d.try_get()?;
