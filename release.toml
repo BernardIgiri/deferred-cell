@@ -1,0 +1,9 @@
+sign-commit = true
+sign-tag = true
+push = true
+push-remote = "origin"
+tag-prefix = "v"
+consolidate-commits = true
+consolidate-push = true
+allow-branch = ["main"]
+publish = true
