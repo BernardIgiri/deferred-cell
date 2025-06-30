@@ -94,13 +94,13 @@ impl<'a, T> DeferredMut<'a, T> {
     }
     pub fn try_set(&self, value: &Rc<T>) -> Result<(), DeferredError> {
         self.0
-             .0
+            .0
             .set(Rc::downgrade(value))
             .map_err(|_| DeferredError::DuplicateInitialization())
     }
     #[inline]
     pub fn can_set(&self) -> bool {
-        self.0 .0.get().is_none()
+        self.0.0.get().is_none()
     }
 }
 
