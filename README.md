@@ -26,7 +26,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-deferred-cell = "0.1"
+deferred-cell = "0.6"
 ```
 
 ---
