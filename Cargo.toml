@@ -2,6 +2,15 @@
 name = "deferred-cell"
 version = "0.1.0"
 edition = "2024"
+description = "A single-assignment, weak reference wrapper for cyclic node graphs with late initialization"
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/BernardIgiri/deferred-cell"
+homepage = "https://github.com/BernardIgiri/deferred-cell"
+documentation = "https://docs.rs/deferred-cell"
+keywords = ["weak", "once", "graph", "rc", "deferred"]
+categories = ["data-structures", "memory-management", "no-std::rc"]
+exclude = [".github/", "target/", "release.toml", "Cargo.lock"]
 
 [dependencies]
 thiserror = "2.0.12"
