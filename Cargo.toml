@@ -9,7 +9,7 @@ repository = "https://github.com/BernardIgiri/deferred-cell"
 homepage = "https://github.com/BernardIgiri/deferred-cell"
 documentation = "https://docs.rs/deferred-cell"
 keywords = ["weak", "once", "graph", "rc", "deferred"]
-categories = ["data-structures", "memory-management", "no-std::rc"]
+categories = ["data-structures", "memory-management"]
 exclude = [".github/", "target/", "release.toml", "Cargo.lock"]
 
 [dependencies]
