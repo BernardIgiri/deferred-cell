@@ -2,7 +2,6 @@ sign-commit = true
 sign-tag = true
 push = true
 push-remote = "origin"
-tag-name = "v{{version}}"
 consolidate-commits = true
 allow-branch = ["main"]
 publish = true
