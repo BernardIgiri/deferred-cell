@@ -2,7 +2,7 @@
 
 [![Crates.io](https://img.shields.io/crates/v/deferred-cell.svg)](https://crates.io/crates/deferred-cell)
 [![Docs.rs](https://docs.rs/deferred-cell/badge.svg)](https://docs.rs/deferred-cell)
-[![CI](https://github.com/BernardIgiri/deferred-cell/actions/workflows/release.yml/badge.svg)](https://github.com/BernardIgiri/deferred-cell/actions)
+[![CI](https://github.com/BernardIgiri/deferred-cell/actions/workflows/publish.yml/badge.svg)](https://github.com/BernardIgiri/deferred-cell/actions)
 
 A single-assignment, weak reference wrapper for cyclic node graphs with write-once, late initialization.
 
